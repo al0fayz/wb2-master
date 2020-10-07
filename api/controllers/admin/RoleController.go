@@ -55,7 +55,7 @@ func GetRole(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{
 			"success": false,
 			"status": "error", 
-			"messages": "No role found with ID", 
+			"messages": "Data not found!", 
 			"data": nil,
 		})
 
@@ -63,7 +63,7 @@ func GetRole(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"status": "success", 
-		"messages": "Role found", 
+		"messages": "Data Found", 
 		"data": role,
 	})
 }
@@ -82,20 +82,45 @@ func SaveRole(c *fiber.Ctx) error {
 		})
 	}
 	role.Prepare()
-	//validate name 
+	//validate
 	err = role.Validate()
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
+        return c.Status(422).JSON(fiber.Map{
 			"success": false,
 			"status": "error", 
 			"messages": err.Error(), 
 			"data": nil,
 		})
-	}
+    }
 	db.Create(&role)
 	return c.JSON(fiber.Map{
+		"success": true,
 		"status": "success", 
-		"message": "Created product", 
+		"messages": "Successfully save data", 
 		"data": role,
+	})
+}
+// Delete Role
+func DeleteRole(c *fiber.Ctx) error {
+	id := c.Params("id")
+	db := databases.DB
+
+	var role models.Role
+	db.First(&role, id)
+	if role.Name == "" {
+		return c.Status(404).JSON(fiber.Map{
+			"success": false,
+			"status": "error", 
+			"messages": "Data not found!", 
+			"data": nil,
+		})
+
+	}
+	db.Delete(&role)
+	return c.JSON(fiber.Map{
+		"success": true,
+		"status": "success", 
+		"message": "Data successfully deleted", 
+		"data": nil,
 	})
 }
