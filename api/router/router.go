@@ -20,5 +20,6 @@ func SetupRoutes(app *fiber.App) {
 	role.Get("/", admin.GetAllRole)
 	role.Post("/", admin.SaveRole)
 	role.Get("/:id", admin.GetRole)
+	role.Put("/:id", admin.UpdateRole)
 	role.Delete("/:id", admin.DeleteRole)
 }

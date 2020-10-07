@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"wb2-master/api/databases"
 	"wb2-master/api/models"
+	"github.com/jinzhu/gorm"
 )
 
 //get all Roles
@@ -50,14 +51,16 @@ func GetRole(c *fiber.Ctx) error {
 	id := c.Params("id")
 	db := databases.DB
 	var role models.Role
-	db.Find(&role, id)
-	if role.Name == "" {
-		return c.Status(404).JSON(fiber.Map{
-			"success": false,
-			"status": "error", 
-			"messages": "Data not found!", 
-			"data": nil,
-		})
+	err := db.Find(&role, id).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return c.Status(404).JSON(fiber.Map{
+				"success": false,
+				"status": "error", 
+				"messages": "Data not found!", 
+				"data": nil,
+			})
+		}
 
 	}
 	return c.JSON(fiber.Map{
@@ -100,20 +103,74 @@ func SaveRole(c *fiber.Ctx) error {
 		"data": role,
 	})
 }
+// Update Role
+func UpdateRole(c *fiber.Ctx) error {
+	type RoleInput struct {
+		Name string `json:"name"`
+	}
+	var roleinput RoleInput
+	if err := c.BodyParser(&roleinput); err != nil {
+		return c.Status(422).JSON(fiber.Map{
+			"success": false,
+			"status": "error", 
+			"messages": err.Error(), 
+			"data": nil,
+		})
+	}
+	id := c.Params("id")
+
+	db := databases.DB
+	var role models.Role
+
+	err := db.First(&role, id).Error
+
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return c.Status(404).JSON(fiber.Map{
+				"success": false,
+				"status": "error", 
+				"messages": "Data not found!", 
+				"data": nil,
+			})
+		}
+	}
+	role.Name = roleinput.Name
+	//validate
+	err = role.Validate()
+	if err != nil {
+        return c.Status(422).JSON(fiber.Map{
+			"success": false,
+			"status": "error", 
+			"messages": err.Error(), 
+			"data": nil,
+		})
+    }
+	db.Save(&role)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"status": "success", 
+		"messages": "Successfully update data", 
+		"data": role,
+	})
+}
+
 // Delete Role
 func DeleteRole(c *fiber.Ctx) error {
 	id := c.Params("id")
 	db := databases.DB
 
 	var role models.Role
-	db.First(&role, id)
-	if role.Name == "" {
-		return c.Status(404).JSON(fiber.Map{
-			"success": false,
-			"status": "error", 
-			"messages": "Data not found!", 
-			"data": nil,
-		})
+	err := db.First(&role, id).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return c.Status(404).JSON(fiber.Map{
+				"success": false,
+				"status": "error", 
+				"messages": "Data not found!", 
+				"data": nil,
+			})
+		}
 
 	}
 	db.Delete(&role)

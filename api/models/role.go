@@ -4,12 +4,12 @@ import (
 	"html"
 	"strings"
 	"time"
-	"github.com/go-playground/validator/v10"
+	"errors"
 )
 
 type Role struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Name	  string    `gorm:"size:255;not null;unique" json:"name" validate:"required"`
+	Name	  string    `gorm:"size:255;not null;unique" json:"name"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -21,11 +21,8 @@ func (r *Role) Prepare() {
 	r.UpdatedAt = time.Now()
 }
 func (r *Role) Validate() error {
-	var validate *validator.Validate
-	validate = validator.New()
-	err := validate.Struct(r)
-	if err != nil {
-		return err
+	if r.Name == "" {
+		return errors.New("Name is required")
 	}
 	return nil
 }
