@@ -8,14 +8,12 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type Server struct{
-	DB		*gorm.DB
-}
+var DB *gorm.DB
 
-func (server *Server) ConnectDB(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) {
+func ConnectDB(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) {
 	var err error
 	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
-	server.DB, err = gorm.Open(Dbdriver, DBURL)
+	DB, err = gorm.Open(Dbdriver, DBURL)
 	if err != nil {
 		fmt.Printf("Cannot connect to %s database", Dbdriver)
 		log.Fatal("This is the error:", err)
@@ -24,10 +22,10 @@ func (server *Server) ConnectDB(Dbdriver, DbUser, DbPassword, DbPort, DbHost, Db
 	}
 	
 }
-func (server *Server) Seed() {
+func Seed() {
 	//seed
-	seed.Load(server.DB)
+	seed.Load(DB)
 }
-func (server *Server) Migrate() {
-	migration.Migrate(server.DB)
+func Migrate() {
+	migration.Migrate(DB)
 }

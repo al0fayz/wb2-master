@@ -12,23 +12,21 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 )
 
-var server = databases.Server{}
-
 func Run() {
 	app := fiber.New()
 	app.Use(cors.New())
 
 	//koneksi to databases
-	server.ConnectDB(config.Config("DB_DRIVER"), config.Config("DB_USER"), config.Config("DB_PASSWORD"), config.Config("DB_PORT"), config.Config("DB_HOST"), config.Config("DB_NAME"))
+	databases.ConnectDB(config.Config("DB_DRIVER"), config.Config("DB_USER"), config.Config("DB_PASSWORD"), config.Config("DB_PORT"), config.Config("DB_HOST"), config.Config("DB_NAME"))
 
 	//migrate
-	server.Migrate()
+	databases.Migrate()
 	
 	//seed
-	server.Seed()
+	databases.Seed()
 	
 	router.SetupRoutes(app)
 	log.Fatal(app.Listen(":3000"))
 
-	defer server.DB.Close()
+	defer databases.DB.Close()
 }
