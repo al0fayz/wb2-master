@@ -11,8 +11,8 @@ type User struct {
 	Password  string    `gorm:"size:100;not null;" json:"password"`
 	IsActive  bool		`gorm:"default:false" json:"isActive"`
 	IsAdmin   bool		`gorm:"default:false" json:"isAdmin"`
-	Role      Role      `json:"role"`
 	RoleID    uint32    `gorm:"not null" json:"role_id"`
+	Role      Role      `json:"role"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
