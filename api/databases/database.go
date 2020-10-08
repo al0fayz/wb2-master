@@ -29,3 +29,6 @@ func Seed() {
 func Migrate() {
 	migration.Migrate(DB)
 }
+func DropTables() {
+	migration.DropTable(DB)
+}
