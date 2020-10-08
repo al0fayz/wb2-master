@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"wb2-master/api/utils/password"
 	"log"
 
 	"github.com/jinzhu/gorm"
@@ -25,7 +26,9 @@ var users = []models.User{
 	models.User{
 		Username: "admin",
 		Email:    "admin@me.com",
-		Password: "Pandi123#",
+		Password: password.Generate("Pandi123#"),
+		IsActive: true,
+		IsAdmin: true,
 	},
 }
 func Load(db *gorm.DB) {

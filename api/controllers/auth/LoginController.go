@@ -1,137 +1,54 @@
 package auth
 
 import (
-	"wb2-master/api/config"
-	"wb2-master/api/databases"
+	"wb2-master/api/utils"
+	"wb2-master/api/types"
+	"wb2-master/api/utils/password"
+	"wb2-master/api/auth"
 	"wb2-master/api/models"
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
+	"wb2-master/api/databases"
+	"errors"
+	
 	"github.com/gofiber/fiber/v2"
 	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/bcrypt"
 )
 
-// CheckPasswordHash compare password with hash
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+// FindUser searches the user's table with the condition given
+func FindUser(dest interface{}, conds ...interface{}) *gorm.DB {
+	return databases.DB.Where(&models.User{}).Take(dest, conds...)
 }
-
-func getUserByEmail(e string) (*models.User, error) {
-	db := databases.DB
-	var user models.User
-	if err := db.Where(&models.User{Email: e}).Find(&user).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
+// FindUserByEmail searches the user's table with the email given
+func FindUserByEmail(dest interface{}, email string) *gorm.DB {
+	return FindUser(dest, "email = ?", email)
 }
+// Login
+func Login(ctx *fiber.Ctx) error {
+	loginInput := new(types.LoginDTO)
 
-func getUserByUsername(u string) (*models.User, error) {
-	db := databases.DB
-	var user models.User
-	if err := db.Where(&models.User{Username: u}).Find(&user).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-		return nil, err
+	if err := utils.ParseBodyAndValidate(ctx, loginInput); err != nil {
+		return err
 	}
-	return &user, nil
-}
+	user := &types.User{}
 
-// Login get user and password
-func Login(c *fiber.Ctx) error {
-	type LoginInput struct {
-		Identity string `json:"identity"`
-		Password string `json:"password"`
-	}
-	type UserData struct {
-		ID       uint32	`json:"id"`
-		Username string	`json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	var input LoginInput
-	var ud UserData
+	err := FindUserByEmail(user, loginInput.Email).Error
 
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": "error", 
-			"messages": "Error on login request", 
-			"data": err,
-		})
-	}
-	identity := input.Identity
-	pass := input.Password
-
-	email, err := getUserByEmail(identity)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status": "error", 
-			"messages": "Error on email", 
-			"data": err,
-		})
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
 	}
 
-	user, err := getUserByUsername(identity)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status": "error", 
-			"messages": "Error on username", 
-			"data": err,
-		})
+	if err := password.Verify(user.Password, loginInput.Password); err != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
 	}
 
-	if email == nil && user == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status": "error", 
-			"messages": "User not found", 
-			"data": err,
-		})
-	}
-
-	if email == nil {
-		ud = UserData{
-			ID:       user.ID,
-			Username: user.Username,
-			Email:    user.Email,
-			Password: user.Password,
-		}
-	} else {
-		ud = UserData{
-			ID:       email.ID,
-			Username: email.Username,
-			Email:    email.Email,
-			Password: email.Password,
-		}
-	}
-
-	if !CheckPasswordHash(pass, ud.Password) {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"status": "error", 
-			"messages": "Invalid password", 
-			"data": nil,
-		})
-	}
-
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-	claims["username"] = ud.Username
-	claims["user_id"] = ud.ID
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-	t, err := token.SignedString([]byte(config.Config("SECRET")))
-	if err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
-	}
-
-	return c.JSON(fiber.Map{
-		"status": "success", 
-		"messages": "Success login",
-		 "data": t,
-		})
+	token, expire := auth.Generate(&auth.TokenPayload{
+		ID: user.ID,
+	})
+	
+	return ctx.JSON(&types.AuthResponse{
+		User: user,
+		Auth: &types.AccessResponse{
+			Token: token,
+			Expire: expire,
+		},
+	})
 }
