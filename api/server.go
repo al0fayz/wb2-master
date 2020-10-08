@@ -20,10 +20,10 @@ func Run() {
 	databases.ConnectDB(config.Config("DB_DRIVER"), config.Config("DB_USER"), config.Config("DB_PASSWORD"), config.Config("DB_PORT"), config.Config("DB_HOST"), config.Config("DB_NAME"))
 
 	//migrate
-	// databases.Migrate()
+	databases.Migrate()
 	
 	//seed
-	// databases.Seed()
+	databases.Seed()
 	
 	router.SetupRoutes(app)
 	log.Fatal(app.Listen(":3000"))

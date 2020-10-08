@@ -1,4 +1,4 @@
-package middleware
+package middlewares
 
 import (
 	"wb2-master/api/config"
@@ -6,6 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v2"
 )
+
+
 
 // Protected protect routes
 func Protected() fiber.Handler {
@@ -18,8 +20,16 @@ func Protected() fiber.Handler {
 func jwtError(c *fiber.Ctx, err error) error {
 	if err.Error() == "Missing or malformed JWT" {
 		return c.Status(fiber.StatusBadRequest).
-			JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
+			JSON(fiber.Map{
+				"status": "error", 
+				"messages": "Missing or malformed JWT", 
+				"data": nil,
+			})
 	}
 	return c.Status(fiber.StatusUnauthorized).
-		JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
+		JSON(fiber.Map{
+			"status": "error", 
+			"messages": "Invalid or expired JWT", 
+			"data": nil,
+		})
 }
