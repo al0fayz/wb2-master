@@ -10,15 +10,19 @@ import (
 
 var roles = []models.Role{
 	models.Role{
+		ID: 1,
 		Name: "Admin",
 	},
 	models.Role{
+		ID: 2,
 		Name: "Mitra",
 	},
 	models.Role{
+		ID: 3,
 		Name: "Agent",
 	},
 	models.Role{
+		ID: 4,
 		Name: "Sub Agent",
 	},
 }
@@ -29,6 +33,7 @@ var users = []models.User{
 		Password: password.Generate("Pandi123#"),
 		IsActive: true,
 		IsAdmin: true,
+		RoleID: 1,
 	},
 }
 func Load(db *gorm.DB) {
@@ -43,8 +48,6 @@ func Load(db *gorm.DB) {
 
 	//user
 	for i, _ := range users {
-		users[i].RoleID = 1
-	
 		err = db.Debug().Model(&models.User{}).Create(&users[i]).Error
 		if err != nil {
 			log.Fatalf("cannot seed users table: %v", err)

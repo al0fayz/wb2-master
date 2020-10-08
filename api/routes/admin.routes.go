@@ -12,8 +12,10 @@ func AdminRoutes(app fiber.Router) {
 	v2 := app.Group("/api/v2").Use(middlewares.Auth)
 
 	//admin
-	adminRole := v2.Group("/admin")
+	adminRole := v2.Group("/admin").Use(middlewares.IsAdmin)
 	
+	//dashboard 
+	adminRole.Get("/dashboard", admin.Dashboard)
 	//role
 	role := adminRole.Group("/role")
 	role.Get("/", admin.GetAllRole)

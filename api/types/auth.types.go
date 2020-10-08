@@ -19,10 +19,11 @@ type SignupDTO struct {
 
 // User table
 type User struct {
-	ID       	uint32 `json:"id"`
-	Username	string `json:"username"`
-	Email    	string `json:"email"`
-	Password 	string `json:"-"`
+	ID       	uint32 				`json:"id"`
+	Username	string 				`json:"username"`
+	Email    	string 				`json:"email"`
+	Password 	string 				`json:"-"`
+	IsActive  	bool				`gorm:"default:false" json:"isActive"`
 	Role      	[]models.Role      	`json:"role"`
 	RoleID    	uint32    			`json:"role_id"`
 

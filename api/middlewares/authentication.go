@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"wb2-master/api/auth"
-	"strings"
 	
+	"strings"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -32,6 +32,6 @@ func Auth(c *fiber.Ctx) error {
 	}
 
 	c.Locals("USER", user.ID)
-
+	
 	return c.Next()
 }

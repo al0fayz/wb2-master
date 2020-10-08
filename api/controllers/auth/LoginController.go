@@ -32,12 +32,18 @@ func Login(ctx *fiber.Ctx) error {
 
 	err := FindUserByEmail(user, loginInput.Email).Error
 
+	//check user is exist
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
 	}
 
+	//check password is corect
 	if err := password.Verify(user.Password, loginInput.Password); err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
+	}
+	//check user is active 
+	if user.IsActive != true {
+		return fiber.NewError(fiber.StatusUnauthorized, "User is not Active!")
 	}
 	if user.ID != 0 {
 		err = databases.DB.Debug().Model(&models.Role{}).Where("id = ?", user.RoleID).Take(&user.Role).Error

@@ -34,6 +34,12 @@ func Run() {
 	routes.SetupRoutes(app)
 	//admin routes
 	routes.AdminRoutes(app)
+	//mitra routes
+	routes.MitraRoutes(app)
+	//agent routes 
+	routes.AgentRoutes(app)
+	//sub agent routes
+	routes.SubAgentRoutes(app)
 	
 	//server serve
 	app.Listen(fmt.Sprintf(":%v", config.Config("PORT")))
