@@ -15,4 +15,5 @@ type User struct {
 	RoleID    uint32    `gorm:"not null" json:"role_id"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }

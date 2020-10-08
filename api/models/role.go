@@ -4,7 +4,6 @@ import (
 	"html"
 	"strings"
 	"time"
-	"errors"
 )
 
 type Role struct {
@@ -12,6 +11,7 @@ type Role struct {
 	Name	  string    `gorm:"size:255;not null;unique" json:"name"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 func (r *Role) Prepare() {
@@ -19,10 +19,4 @@ func (r *Role) Prepare() {
 	r.Name 		= html.EscapeString(strings.TrimSpace(r.Name))
 	r.CreatedAt = time.Now()
 	r.UpdatedAt = time.Now()
-}
-func (r *Role) Validate() error {
-	if r.Name == "" {
-		return errors.New("Name is required")
-	}
-	return nil
 }

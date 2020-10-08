@@ -3,13 +3,16 @@ package admin
 import (
 	"wb2-master/api/databases"
 	"wb2-master/api/models"
+	"wb2-master/api/utils"
 	
 	"strconv"
 	"github.com/gofiber/fiber/v2"
 	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 )
-
+type RoleInput struct {
+	Name string `json:"name" validate:"required,alpha"`
+}
 //get all Roles
 func GetAllRole(c *fiber.Ctx) error {
 	db := databases.DB
@@ -30,7 +33,6 @@ func GetAllRole(c *fiber.Ctx) error {
 		db = db.Where("name LIKE ?", "%"+qSearch+"%")
 	}
 	//pagination
-
 	paginator := pagination.Paging(&pagination.Param{
 		DB:      db,
 		Page:    page,
@@ -42,7 +44,7 @@ func GetAllRole(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"status": "success", 
-		"messages": "All products", 
+		"messages": "All role", 
 		"data": paginator,
 	})
 }
@@ -55,12 +57,7 @@ func GetRole(c *fiber.Ctx) error {
 	err := db.Find(&role, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return c.Status(404).JSON(fiber.Map{
-				"success": false,
-				"status": "error", 
-				"messages": "Data not found!", 
-				"data": nil,
-			})
+			return fiber.NewError(404, "Role not found!")
 		}
 
 	}
@@ -73,30 +70,19 @@ func GetRole(c *fiber.Ctx) error {
 }
 //save role
 func SaveRole(c *fiber.Ctx) error {
-	var err error
 	db := databases.DB
-	role := new(models.Role)
+	roleinput := new(RoleInput)
+	role := models.Role{}
 
-	if err = c.BodyParser(role); err != nil {
-		return c.Status(422).JSON(fiber.Map{
-			"success": false,
-			"status": "error", 
-			"messages": err.Error(), 
-			"data": nil,
-		})
+	if err := utils.ParseBodyAndValidate(c, roleinput); err != nil {
+		return err
 	}
+	role.Name = roleinput.Name
 	role.Prepare()
-	//validate
-	err = role.Validate()
-	if err != nil {
-        return c.Status(422).JSON(fiber.Map{
-			"success": false,
-			"status": "error", 
-			"messages": err.Error(), 
-			"data": nil,
-		})
-    }
-	db.Create(&role)
+	
+	if err := db.Create(&role).Error; err != nil {
+		return fiber.NewError(fiber.StatusConflict, err.Error())
+	}
 	return c.JSON(fiber.Map{
 		"success": true,
 		"status": "success", 
@@ -106,46 +92,25 @@ func SaveRole(c *fiber.Ctx) error {
 }
 // Update Role
 func UpdateRole(c *fiber.Ctx) error {
-	type RoleInput struct {
-		Name string `json:"name"`
-	}
-	var roleinput RoleInput
-	if err := c.BodyParser(&roleinput); err != nil {
-		return c.Status(422).JSON(fiber.Map{
-			"success": false,
-			"status": "error", 
-			"messages": err.Error(), 
-			"data": nil,
-		})
-	}
-	id := c.Params("id")
-
 	db := databases.DB
-	var role models.Role
+	roleinput := new(RoleInput)
+	role := models.Role{}
+
+	if err := utils.ParseBodyAndValidate(c, roleinput); err != nil {
+		return err
+	}
+	
+	id := c.Params("id")
 
 	err := db.First(&role, id).Error
 
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return c.Status(404).JSON(fiber.Map{
-				"success": false,
-				"status": "error", 
-				"messages": "Data not found!", 
-				"data": nil,
-			})
+			return fiber.NewError(404, "Role not found!")
 		}
 	}
 	role.Name = roleinput.Name
-	//validate
-	err = role.Validate()
-	if err != nil {
-        return c.Status(422).JSON(fiber.Map{
-			"success": false,
-			"status": "error", 
-			"messages": err.Error(), 
-			"data": nil,
-		})
-    }
+	
 	db.Save(&role)
 
 	return c.JSON(fiber.Map{
@@ -165,14 +130,8 @@ func DeleteRole(c *fiber.Ctx) error {
 	err := db.First(&role, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return c.Status(404).JSON(fiber.Map{
-				"success": false,
-				"status": "error", 
-				"messages": "Data not found!", 
-				"data": nil,
-			})
+			return fiber.NewError(404, "Role not found!")
 		}
-
 	}
 	db.Delete(&role)
 	return c.JSON(fiber.Map{
