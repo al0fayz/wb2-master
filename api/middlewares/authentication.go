@@ -3,7 +3,7 @@ package middlewares
 import (
 	"wb2-master/api/auth"
 	"strings"
-
+	
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -26,7 +26,7 @@ func Auth(c *fiber.Ctx) error {
 
 	// Verify the token which is in the chunks
 	user, err := auth.Verify(chunks[1])
-
+	
 	if err != nil {
 		return fiber.ErrUnauthorized
 	}

@@ -47,7 +47,7 @@ func parse(token string) (*jwt.Token, error) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return []byte(config.Config("TOKENKEY")), nil
+		return []byte(config.Config("TOKEN_KEY")), nil
 	})
 }
 

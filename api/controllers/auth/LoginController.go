@@ -39,7 +39,9 @@ func Login(ctx *fiber.Ctx) error {
 	if err := password.Verify(user.Password, loginInput.Password); err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
 	}
-
+	if user.ID != 0 {
+		err = databases.DB.Debug().Model(&models.Role{}).Where("id = ?", user.RoleID).Take(&user.Role).Error
+	}
 	token, expire := auth.Generate(&auth.TokenPayload{
 		ID: user.ID,
 	})

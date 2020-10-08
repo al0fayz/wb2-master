@@ -1,6 +1,9 @@
 package types
 
-import "time"
+import (
+	"time"
+	"wb2-master/api/models"
+)
 
 // LoginDTO defined the /login payload
 type LoginDTO struct {
@@ -20,6 +23,9 @@ type User struct {
 	Username	string `json:"username"`
 	Email    	string `json:"email"`
 	Password 	string `json:"-"`
+	Role      	[]models.Role      	`json:"role"`
+	RoleID    	uint32    			`json:"role_id"`
+
 }
 
 // AccessResponse todo
