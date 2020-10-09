@@ -25,7 +25,7 @@ func Run() {
 	databases.ConnectDB(config.Config("DB_DRIVER"), config.Config("DB_USER"), config.Config("DB_PASSWORD"), config.Config("DB_PORT"), config.Config("DB_HOST"), config.Config("DB_NAME"))
 
 	//delete all tables
-	// databases.DropTables()
+	databases.DropTables()
 	
 	//migrate
 	databases.Migrate()

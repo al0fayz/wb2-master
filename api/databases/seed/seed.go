@@ -5,7 +5,7 @@ import (
 )
 func Load(db *gorm.DB) {
 	//seed data
-	// RoleSeed(db)
-	// UserSeed(db)
-	// CountrySeed(db)
+	RoleSeed(db)
+	UserSeed(db)
+	CountrySeed(db)
 }
